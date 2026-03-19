@@ -1,0 +1,47 @@
+#=== Directories ===#
+#output_dir: /mnt/nvme/data/cifar10/dino-ldm/      
+#data_dir: /mnt/nvme/data/cifar10/                  
+#rep_dir: /mnt/nvme/data/cifar10/rep/          
+#pretrained_model_name_or_path: CompVis/stable-diffusion-v1-4
+
+output_dir: /proj/dcdl/users/gabei62/rep-ldm-test/output/       
+data_dir: /scratch/local/rep-ldm/data/cifar10_subset/                    
+rep_dir: /scratch/local/rep-ldm/data/cifar10_subset/rep/
+pretrained_model_name_or_path: CompVis/stable-diffusion-v1-4  
+
+#=== Data Setup ===# 
+seed: 42                                                                            
+resolution: 32                                                            
+batch_size: 16                                            
+dataset: cifar-10                                            
+trials: dinov2-ldm-cifar-10-subset                              
+
+#=== Pre-trained Encoder Config ===#
+encoder_name: None                                             
+channels: 3                                               
+rep_encoder: test                                     
+embed_dim: 768
+
+#=== Training U-Net ===#
+lr: 0.00005                                                                        
+beta_1: 0.9                                                           
+beta_2:  0.999                                                
+weight_decay: 0.001                                           
+lr_scheduler: lambdalinear                                       
+num_train_epochs: 250                                      
+gradient_accumulation_steps: 1                             
+name: dinov2-ldm-unet-cifar-10-subset                                 
+checkpoint_epoch: 25                                                                            
+prev_step: 0
+validation: False
+train_from_scratch: True
+resume_path: /path/to/checkpoint/{prev_checkpoint_name}.pt # only used if train_from_scratch is False
+
+#=== Sampling U-Net ===#
+method: dino-ldm
+scheduler: ddpm
+noise_strength: 0.0
+guidance_scale: 6
+num_samples: 8
+infsteps: 100 
+sampling: seed  
