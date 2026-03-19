@@ -5,14 +5,10 @@ import numpy as np
 import random
 from tqdm.auto import tqdm
 from PIL import Image
+from pathlib import Path
 from torch.utils.data import DataLoader
 from torch import autocast
-from diffusers import DDPMScheduler, DDIMScheduler, AutoencoderKL
-from dataset.custom import ImageDataset
-
-import os
-import torch
-import numpy as np
+from diffusers import DDPMScheduler, DDIMScheduler, AutoencoderKL, UNet2DConditionModel
 from torch.utils.data import Dataset
 
 
@@ -80,8 +76,23 @@ def sample(args):
 
     print(f"Saving to: {save_path}")
     print("Loading UNet...")
-    unet = torch.load(args.model_path, map_location=device)
-    unet.to(device).eval()
+
+    ext = Path(args.model_path).suffix
+    
+    if ext ==".pt":
+        unet = UNet2DConditionModel(
+            sample_size=args.height,  # 32 for CIFAR-10
+            in_channels=3,
+            out_channels= 3,
+            cross_attention_dim=768
+        )
+        checkpoint = torch.load(args.model_path, map_location="cpu")
+        unet.load_state_dict(checkpoint["model_state_dict"])
+        unet.to(device).eval()
+    
+    else:
+        unet = torch.load(args.model_path, map_location=device)
+        unet.to(device).eval()
 
     print("Loading scheduler...")
     if args.scheduler == "ddpm":
@@ -145,7 +156,7 @@ def sample(args):
         torch.cuda.empty_cache()
 
         print(f"Saved batch {step+1}/{total_steps}")
-        break
+        #break
 
 
 def parse_args():
